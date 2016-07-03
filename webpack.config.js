@@ -1,5 +1,8 @@
 var webpack = require('webpack');
 var path = require('path');
+const autoprefixer = require('autoprefixer');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
+
 module.exports = {
 
     // 配置服务器
@@ -13,6 +16,7 @@ module.exports = {
     },
 
     entry: [
+        'webpack-hot-middleware/client',
       "./js/app.js"
     ],
 
@@ -21,15 +25,36 @@ module.exports = {
         filename: "bundle.js"
     },
 
-    module: {
-        loaders: [
-            { test: /\.js?$/, loaders: ['react-hot', 'babel'], exclude: /node_modules/ },
-            { test: /\.js$/, exclude: /node_modules/, loader: 'babel-loader'},
-            { test: /\.css$/, loader: "style!css" },
-            {test: /\.less/,loader: 'style-loader!css-loader!less-loader'}
+    resolve: {
+        extensions: ['', '.scss', '.css', '.js', '.json'],
+        modulesDirectories: [
+            'node_modules',
+            path.resolve(__dirname, './node_modules')
         ]
     },
-    resolve:{
-        extensions:['','.js','.json']
-    }
+    module: {
+        loaders: [
+            {
+                test: /(\.js|\.jsx)$/,
+                exclude: /(node_modules)/,
+                loader: 'babel',
+                query: { presets: ['es2015', 'stage-0', 'react'] }
+            }, {
+                test: /(\.scss|\.css)$/,
+                loader: ExtractTextPlugin.extract('style', 'css?sourceMap&modules&importLoaders=1&localIdentName=[name]__[local]___[hash:base64:5]!postcss!sass')
+            }
+        ]
+    },
+    postcss: [autoprefixer],
+    sassLoader: {
+        data: '@import "' + path.resolve(__dirname, 'css/theme.scss') + '";'
+    },
+    plugins: [
+        new ExtractTextPlugin('react-toolbox.css', { allChunks: true }),
+        new webpack.HotModuleReplacementPlugin(),
+        new webpack.NoErrorsPlugin(),
+        new webpack.DefinePlugin({
+            'process.env.NODE_ENV': JSON.stringify('development')
+        })
+    ]
 };
